@@ -1,10 +1,11 @@
 # Travelling Salesman Problem Solution By Ant Colony Optimization
 
+# Problem
+A traveler needs to visit all the cities from a list, where distances between all the cities are known and each city should be visited just once. What is the shortest possible route that he visits each city exactly once and returns to the origin city?
+
 ## T.S.P
 TSP problem is regarded as Holy Grail Of Computer Science and is one of the most famous hard combinatorial optimization problems. It belongs to the class of NP-hard optimization problems.
-This means that no polynomial time algorithm is known to guarantee its global optimal solution. Consider a salesman who has to visit
-cities. The TSP problem consists of finding the shortest tour through all the cities such that no city is visited twice and the 
-salesman returns back to the starting city at the end of the tour.
+This means that no polynomial time algorithm is known to guarantee its global optimal solution.
 
 ## Why Ants ?
 In the natural world, ants of some species (initially) wander randomly, and upon finding food return to their colony while laying down pheromone trails. If other ants find such a path, they are likely not to keep travelling at random, but instead to follow the trail, returning and reinforcing it if they eventually find food (see Ant communication).
