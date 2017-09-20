@@ -34,11 +34,11 @@ Results are displayed below in table (Probabilitic)
 | TestCase      | Distance      | 
 | ------------- |:-------------:| 
 | euc_100       | 1510.456712   | 
-| euc_250       | 2556.674567   | 
-| euc_500       | 3454.452650   |
-| noneuc_100    | 5206.494552    | 
-| noneuc_250    | 12399.888667  | 
-| noneuc_500    | 25580.281625  | 
+| euc_250       | 2461.674567   | 
+| euc_500       | 3492.265110   |
+| noneuc_100    | 5208.494552   | 
+| noneuc_250    | 12855.132914  | 
+| noneuc_500    | 25440.281625  | 
 
 ## About
 Aimed to solve Travelling Salesman Problem. This Assignment was under Prof. [Deepak Khemani](https://www.iitm.ac.in/info/fac/khemani).
@@ -48,4 +48,9 @@ Aimed to solve Travelling Salesman Problem. This Assignment was under Prof. [Dee
 [Pranav Gupta](http://pranavgupta1234.github.io)
 1. Github: http://github.com/pranavgupta1234
 2. Email: pranavgupta4321@gmail.com
+
+[Akhil Singhal](http://github.com/akhilsinghal1234)
+1. Github: http://github.com/akhilsinghal1234
+
+
 
