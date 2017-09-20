@@ -1,40 +1,31 @@
-import java.io.BufferedReader;
-import java.io.FileReader;
 import java.io.IOException;
-import java.util.LinkedList;
 import java.util.Random;
-
+import java.util.LinkedList;
+import java.io.FileReader;
+import java.io.File;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
+import java.io.BufferedReader;
 
 public class tsp {
 
-    public int n = 0;                                       // no of places  
-    public int m = 0;                                       //no of ants used
+    public int noOfTowns = 0;                                       
+    public int noOfAnts = 0;                                       
     private double cityGraph[][] = null;
     private double probs[] = null;
-    private int currentIndex = 0;
+    private int currIndex = 0;
     private double TrailMarksLeft[][] = null;
     private Roamer ants[] = null;
-    private Random rand = new Random();
-
-    //models what to choose greedily    
+    private Random rand = new Random(); 
     private double betaFactor = 5;                           
-    
-    //models the removal factor of evaporation
-    private double evaporation = 0.6;
-    private double Q = 500;
-
-    //% of ants used to start making the paths
-    private double numAntFactor = 0.85;
+    private double dataLoss = 0.6;
+    private double QFactor = 500;
+    private double numAntFactor = 0.85;                             
     private double pr = 0.01;
     private double cFactor = 0.0;
-
-    // Reasonable number of iterations
     private int maxIterations = 100;                
     public int[] optimizedPath;
     public double optimizedPathLength;
-
-
-    //initial amount of trial on the path
     private double c = 1.0;
     private double alpha = 1;
 
@@ -45,13 +36,13 @@ public class tsp {
         public boolean visitMarker[] = new boolean[cityGraph.length];
 
         public void clear() {
-            for (int i = 0; i < n; i++)
+            for (int i = 0; i < noOfTowns; i++)
                 visitMarker[i] = false;
         }
 
         public double pathLength() {
-            double length = cityGraph[PathToDestination[n - 1]][PathToDestination[0]];
-            for (int i = 0; i < n - 1; i++) {
+            double length = cityGraph[PathToDestination[noOfTowns - 1]][PathToDestination[0]];
+            for (int i = 0; i < noOfTowns - 1; i++) {
                 length += cityGraph[PathToDestination[i]][PathToDestination[i + 1]];
             }
             return length;
@@ -62,7 +53,7 @@ public class tsp {
         }
 
         public void visitPlace(int town) {
-            PathToDestination[currentIndex + 1] = town;
+            PathToDestination[currIndex + 1] = town;
             visitMarker[town] = true;
         }
     }
@@ -72,12 +63,12 @@ public class tsp {
 
         FileReader fileReader = new FileReader(path);
         BufferedReader bufferedReader = new BufferedReader(fileReader);
-        String line;
+        String newLine;
         int i = 0;
 
-        while ((line = bufferedReader.readLine()) != null) {
+        while ((newLine = bufferedReader.readLine()) != null) {
 
-            String splitByToken[] = line.split(" ");
+            String splitByToken[] = newLine.split(" ");
             if( splitByToken.length <= 2){
                 continue;
             }
@@ -87,7 +78,6 @@ public class tsp {
                     split.add(s);
                 }
             }
-
 
             if (cityGraph == null){
                 cityGraph = new double[split.size()][split.size()];
@@ -103,16 +93,15 @@ public class tsp {
             i++;
         }
 
-        n = cityGraph.length;
-        m = (int) (n * numAntFactor);
+        noOfTowns = cityGraph.length;
+        noOfAnts = (int) (noOfTowns * numAntFactor);
 
-        cFactor -= Double.valueOf(n);
+        cFactor -= Double.valueOf(noOfTowns);
 
-        // all memory allocations done here
-        TrailMarksLeft = new double[n][n];
-        probs = new double[n];
-        ants = new Roamer[m];
-        for (int j = 0; j < m; j++){
+        TrailMarksLeft = new double[noOfTowns][noOfTowns];
+        probs = new double[noOfTowns];
+        ants = new Roamer[noOfAnts];
+        for (int j = 0; j < noOfAnts; j++){
             ants[j] = new Roamer();
         }
 
@@ -133,18 +122,11 @@ public class tsp {
         }
     }
 
-    //custom power function which loosely approximates (for faster performance)
-    public static double customPowOptimized(final double a, final double b) {
-        final int x = (int) (Double.doubleToLongBits(a) >> 32);
-        final int y = (int) (b * (x - 1072632447) + 1072632447);
-        return Double.longBitsToDouble(((long) y) << 32);
-    }
-
     private void probabilityToVisit(Roamer ant) {
-        int i = ant.PathToDestination[currentIndex];
+        int i = ant.PathToDestination[currIndex];
 
         double denom = 0.0;
-        for (int l = 0; l < n; l++){
+        for (int l = 0; l < noOfTowns; l++){
             if (!ant.visitMarker(l)){
                 denom += customPowOptimized(TrailMarksLeft[i][l], alpha)
                         * customPowOptimized(1.0 / cityGraph[i][l], betaFactor);
@@ -152,7 +134,7 @@ public class tsp {
         }
 
 
-        for (int j = 0; j < n; j++) {
+        for (int j = 0; j < noOfTowns; j++) {
             if (ant.visitMarker(j)) {
                 probs[j] = 0.0;
             } else {
@@ -164,31 +146,41 @@ public class tsp {
 
     }
 
-    private void updateTrails() {
+    public static double customPowOptimized(final double a, final double b) {
+        final int x = (int) (Double.doubleToLongBits(a) >> 32);
+        final int y = (int) (b * (x - 1072632447) + 1072632447);
+        return Double.longBitsToDouble(((long) y) << 32);
+    }
 
-        for (int i = 0; i < n; i++){
-            for (int j = 0; j < n; j++){
-                TrailMarksLeft[i][j] *= evaporation;
+    private void updateTrails() {
+        for (int i = 0; i < noOfTowns; i++){
+            for (int j = 0; j < noOfTowns; j++){
+                TrailMarksLeft[i][j] *= dataLoss;
             }
         }
-
-
         for (Roamer a : ants) {
-            double contribution = Q / a.pathLength();
-            for (int i = 0; i < n - 1; i++) {
-                TrailMarksLeft[a.PathToDestination[i]][a.PathToDestination[i + 1]] += contribution;
+            double contri = QFactor / a.pathLength();
+            for (int i = 0; i < noOfTowns - 1; i++) {
+                TrailMarksLeft[a.PathToDestination[i]][a.PathToDestination[i + 1]] += contri;
             }
-            TrailMarksLeft[a.PathToDestination[n - 1]][a.PathToDestination[0]] += contribution;
+            TrailMarksLeft[a.PathToDestination[noOfTowns - 1]][a.PathToDestination[0]] += contri;
         }
     }
 
+    private void setUpAnts() {
+        currIndex = -1;
+        for (int i = 0; i < noOfAnts; i++) {
+            ants[i].clear(); // faster than fresh allocations.
+            ants[i].visitPlace(rand.nextInt(noOfTowns));
+        }
+        currIndex++;
+    }
 
     private int selectNextTown(Roamer ant) {
-
         if (rand.nextDouble() < pr) {
-            int t = rand.nextInt(n - currentIndex); // random town
+            int t = rand.nextInt(noOfTowns - currIndex);
             int j = -1;
-            for (int i = 0; i < n; i++) {
+            for (int i = 0; i < noOfTowns; i++) {
                 if (!ant.visitMarker(i)){
                     j++;
                 }
@@ -196,91 +188,61 @@ public class tsp {
                     return i;
                 }
             }
-
         }
-
         probabilityToVisit(ant);
-
         double r = rand.nextDouble();
         double tot = 0;
-        for (int i = 0; i < n; i++) {
+        for (int i = 0; i < noOfTowns; i++) {
             tot += probs[i];
             if (tot >= r){
                 return i;
             }
         }
-
         return 0;
-
     }
 
     private void moveAnts() {
-
-        while (currentIndex < n - 1) {
+        while (currIndex < noOfTowns - 1) {
             for (Roamer a : ants){
                 a.visitPlace(selectNextTown(a));
             }
-            currentIndex++;
+            currIndex++;
         }
     }
-
-    private void setupAnts() {
-
-        currentIndex = -1;
-        
-        for (int i = 0; i < m; i++) {
-            ants[i].clear(); // faster than fresh allocations.
-            ants[i].visitPlace(rand.nextInt(n));
-        }
-
-        currentIndex++;
-
-    }
-
 
     public static String tourToString(int PathToDestination[]) {
         String t = new String();
         for (int i : PathToDestination){
             t = t + " " + i;
         }
-
         return t;
     }
 
     public int[] solve() {
-
         double currentPathL = 0.0;
-
-        double correctionFactor = 2*n;
-        
-        for (int i = 0; i < n; i++){
-            for (int j = 0; j < n; j++){
+        double correctionFactor = 2*noOfTowns;
+        for (int i = 0; i < noOfTowns; i++){
+            for (int j = 0; j < noOfTowns; j++){
                 TrailMarksLeft[i][j] = c;
             }
         }
 
-
         int iteration = 0;
-
-
         while (iteration < maxIterations) {
-
-            setupAnts();
+            setUpAnts();
             moveAnts();
             updateTrails();
             updateBest();
-
             if(iteration == 0){
                 currentPathL = optimizedPathLength;
             }
-
             iteration++;
         }
-
+        //only print if new path found is better than the previous one
         if(optimizedPathLength < currentPathL){
-            System.out.println("Shorted Length Till Now : " + (optimizedPathLength - correctionFactor));            
+            System.out.println("Shortest Length Till Now : " + (optimizedPathLength - correctionFactor));            
         }
-
+        //If best route is also desired to stdout
         //System.out.println("Best Route till now : " + tourToString(optimizedPath));
 
         return optimizedPath.clone();
@@ -289,26 +251,31 @@ public class tsp {
 
     public static void main(String[] args) {
 
-        if (args.length < 1) {
-            System.err.println("Please specify an input file.");
+        int[] bestPathSoFar;
+
+        if (args.length < 2) {
+            System.err.println("Please specify an input file and an output file.");
+            System.err.println("In format : java tsp inputfile outputfile");
             return;
         }
-
-        tsp tspSolver = new tsp();
         
+        tsp tspSolver = new tsp();
+
+        BufferedWriter bw = null;
+        FileWriter fw = null;
+
         try {
             tspSolver.parseFile(args[0]);
         } catch (IOException e) {
             System.err.println("Error reading cityGraph.");
             return;
         }
-
-        System.out.println("Program Will Automatically Terminate after 5 seconds....");
-
-        if(tspSolver.n < 250){
+        System.out.println("Journey begins....");
+        if(tspSolver.noOfTowns < 250){
             tspSolver.maxIterations = 500;
         }
 
+        /*
         long start = System.currentTimeMillis();
         long end = start + 5*60*1000;                   // Time Limit : 60 seconds * 1000 ms/sec
 
@@ -317,5 +284,50 @@ public class tsp {
         }
 
         return ;
+        */
+
+        //use above commented code if want to run only for 5 minutes    
+
+        //System.out.println("Best Route till now : " + tourToString(bestPathSoFar));
+
+        while(true){
+            bestPathSoFar = tspSolver.solve();
+
+            File file = new File(args[1]);
+            // if file doesnt exists, then create it
+            if (!file.exists()) {
+                try{
+                    file.createNewFile();                
+                } catch(IOException e){
+                    e.printStackTrace();
+                }
+
+            }
+            // true = append file
+            try{
+                fw = new FileWriter(file.getAbsoluteFile(), true);   
+            } catch(IOException e){
+                e.printStackTrace();
+            }
+            bw = new BufferedWriter(fw);
+            try {
+                String data = tourToString(bestPathSoFar);
+                data +="\n";
+                bw.write(data);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }finally {
+                try {
+                    if (bw != null)
+                        bw.close();
+
+                    if (fw != null)
+                        fw.close();
+                } catch (IOException ex) {
+                    ex.printStackTrace();
+                }
+            }
+            
+        }
     }
 }
